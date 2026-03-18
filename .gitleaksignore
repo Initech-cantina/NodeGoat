@@ -1,0 +1,12 @@
+# Historical AWS credentials from vendored node_modules (committed 2013, removed 2015)
+# These credentials were part of a third-party dependency test fixture:
+#   node_modules/forever/node_modules/winston/node_modules/request/tests/test-s3.js
+# Commit: a7b556da2a25a626b908570706b5d9b41e31dc91
+#
+# The node_modules directory was removed in commit 54baea068162ae62c492a14a913b31711c628b8c
+# but the credentials remain in git history. They should be treated as compromised
+# and verified/revoked via AWS IAM.
+#
+# See: https://clarion.cantina.xyz/initech/alerts/346
+a7b556da2a25a626b908570706b5d9b41e31dc91:node_modules/forever/node_modules/winston/node_modules/request/tests/test-s3.js:aws-access-key-id
+a7b556da2a25a626b908570706b5d9b41e31dc91:node_modules/forever/node_modules/winston/node_modules/request/tests/test-s3.js:aws-secret-access-key
