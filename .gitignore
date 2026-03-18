@@ -29,3 +29,7 @@ test/e2e/videos/
 
 # ignore Snyk Code scanner files
 .dccache
+
+# Private key material — generate per-environment, never commit
+artifacts/cert/*.key
+artifacts/cert/*.pem
