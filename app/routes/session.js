@@ -138,8 +138,8 @@ function SessionHandler(db) {
     const validateSignup = (userName, firstName, lastName, password, verify, email, errors) => {
 
         const USER_RE = /^.{1,20}$/;
-        const FNAME_RE = /^.{1,100}$/;
-        const LNAME_RE = /^.{1,100}$/;
+        const FNAME_RE = /^[a-zA-Z '-]{1,100}$/;
+        const LNAME_RE = /^[a-zA-Z '-]{1,100}$/;
         const EMAIL_RE = /^[\S]+@[\S]+\.[\S]+$/;
         const PASS_RE = /^.{1,20}$/;
         /*
