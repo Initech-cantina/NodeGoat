@@ -9,7 +9,15 @@ const envConf = require(path.resolve(__dirname + "/../config/env/" + finalEnv.to
 
 const config = { ...allConf, ...envConf };
 
+// Redact secret-like fields before logging
+const safeConfig = { ...config };
+const sensitiveKeys = ["zapApiKey", "dbPassword", "secret", "apiKey"];
+for (const key of Object.keys(safeConfig)) {
+   if (sensitiveKeys.some(s => key.toLowerCase().includes(s.toLowerCase()))) {
+      safeConfig[key] = safeConfig[key] ? "[REDACTED]" : "";
+   }
+}
 console.log(`Current Config:`);
-console.log(util.inspect(config, false, null));
+console.log(util.inspect(safeConfig, false, null));
 
 module.exports = config;
