@@ -82,18 +82,16 @@ function SessionHandler(db) {
                     return res.render("login", {
                         userName: userName,
                         password: "",
-                        loginError: invalidUserNameErrorMessage,
-                        //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
-                        // loginError: errorMessage
+                        // Fix for A2-2 Broken Auth - Use identical error for both username and password errors
+                        loginError: errorMessage,
                         environmentalScripts
                     });
                 } else if (err.invalidPassword) {
                     return res.render("login", {
                         userName: userName,
                         password: "",
-                        loginError: invalidPasswordErrorMessage,
-                        //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
-                        // loginError: errorMessage
+                        // Fix for A2-2 Broken Auth - Use identical error for both username and password errors
+                        loginError: errorMessage,
                         environmentalScripts
                     });
                 } else {
@@ -210,7 +208,8 @@ function SessionHandler(db) {
                 if (err) return next(err);
 
                 if (user) {
-                    errors.userNameError = "User name already in use. Please choose another";
+                    // Use generic error to prevent account enumeration
+                    errors.userNameError = "Unable to complete registration. Please try a different username or contact support.";
                     return res.render("signup", {
                         ...errors,
                         environmentalScripts
