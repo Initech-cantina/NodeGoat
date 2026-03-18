@@ -58,6 +58,11 @@ function UserDAO(db) {
 
         // Helper function to compare passwords
         const comparePassword = (fromDB, fromUser) => {
+            // Fix for Auth Bypass - Only compare if both values are non-empty strings
+            if (typeof fromDB !== "string" || fromDB.length === 0 ||
+                typeof fromUser !== "string" || fromUser.length === 0) {
+                return false;
+            }
             return fromDB === fromUser;
             /*
             // Fix for A2-Broken Auth
