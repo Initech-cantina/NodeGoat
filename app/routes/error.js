@@ -1,6 +1,6 @@
 // Error handling middleware
 
-const errorHandler = (err, req, res,next) => {
+const errorHandler = (err, req, res, next) => {
 
     "use strict";
 
@@ -8,7 +8,7 @@ const errorHandler = (err, req, res,next) => {
     console.error(err.stack);
     res.status(500);
     res.render("error-template", {
-        error: err
+        error: "An internal server error has occurred."
     });
 };
 
