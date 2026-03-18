@@ -55,6 +55,18 @@ function SessionHandler(db) {
             userName,
             password
         } = req.body;
+
+        // Fix for auth bypass: reject non-string credentials before validation
+        if (typeof userName !== "string" || userName.length === 0 ||
+            typeof password !== "string" || password.length === 0) {
+            return res.render("login", {
+                userName: "",
+                password: "",
+                loginError: "Invalid username and/or password",
+                environmentalScripts
+            });
+        }
+
         userDAO.validateLogin(userName, password, (err, user) => {
             const errorMessage = "Invalid username and/or password";
             const invalidUserNameErrorMessage = "Invalid username";
@@ -156,6 +168,12 @@ function SessionHandler(db) {
         errors.verifyError = "";
         errors.emailError = "";
 
+        // Fix for auth bypass: reject non-string, null, or empty values
+        // before regex test, which would coerce null/undefined to their string representations
+        if (typeof userName !== "string" || userName.length === 0) {
+            errors.userNameError = "Invalid user name.";
+            return false;
+        }
         if (!USER_RE.test(userName)) {
             errors.userNameError = "Invalid user name.";
             return false;
@@ -166,6 +184,14 @@ function SessionHandler(db) {
         }
         if (!LNAME_RE.test(lastName)) {
             errors.lastNameError = "Invalid last name.";
+            return false;
+        }
+        if (typeof password !== "string" || password.length === 0) {
+            errors.passwordError = "Password is required and must be a non-empty string.";
+            return false;
+        }
+        if (typeof verify !== "string" || verify.length === 0) {
+            errors.verifyError = "Password verification is required.";
             return false;
         }
         if (!PASS_RE.test(password)) {

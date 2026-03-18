@@ -16,6 +16,11 @@ function UserDAO(db) {
 
     this.addUser = (userName, firstName, lastName, password, email, callback) => {
 
+        // Defense-in-depth: reject non-string passwords at the data layer
+        if (typeof password !== "string" || password.length === 0) {
+            return callback(new Error("Password must be a non-empty string"), null);
+        }
+
         // Create user document
         const user = {
             userName,
@@ -55,6 +60,14 @@ function UserDAO(db) {
     };
 
     this.validateLogin = (userName, password, callback) => {
+
+        // Defense-in-depth: reject non-string credentials at the data layer
+        if (typeof userName !== "string" || userName.length === 0 ||
+            typeof password !== "string" || password.length === 0) {
+            const invalidError = new Error("Invalid credentials");
+            invalidError.invalidPassword = true;
+            return callback(invalidError, null);
+        }
 
         // Helper function to compare passwords
         const comparePassword = (fromDB, fromUser) => {
