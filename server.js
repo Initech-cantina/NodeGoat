@@ -7,7 +7,7 @@ const session = require("express-session");
 // const csrf = require('csurf');
 const consolidate = require("consolidate"); // Templating library adapter for Express
 const swig = require("swig");
-// const helmet = require("helmet");
+const helmet = require("helmet");
 const MongoClient = require("mongodb").MongoClient; // Driver for connecting to MongoDB
 const http = require("http");
 const marked = require("marked");
@@ -65,6 +65,23 @@ MongoClient.connect(db, (err, db) => {
     */
 
     // Adding/ remove HTTP Headers for security
+
+    // Fix for A5 - Security MisConfig: Enable Content-Security-Policy header
+    // NOTE: 'unsafe-inline' is included because existing views use inline scripts.
+    // Ideally, migrate inline scripts to external files or use nonces to remove 'unsafe-inline'.
+    app.use(helmet.contentSecurityPolicy({
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'"],
+            connectSrc: ["'self'"],
+            fontSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            frameSrc: ["'none'"]
+        }
+    }));
+
     app.use(favicon(__dirname + "/app/assets/favicon.ico"));
 
     // Express middleware to populate "req.body" so we can access POST variables
