@@ -82,18 +82,18 @@ function SessionHandler(db) {
                     return res.render("login", {
                         userName: userName,
                         password: "",
-                        loginError: invalidUserNameErrorMessage,
-                        //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
-                        // loginError: errorMessage
+                        // Fix for A2-2 Broken Auth - Use identical error for both username and password error
+                        // Previously: loginError: invalidUserNameErrorMessage,
+                        loginError: errorMessage,
                         environmentalScripts
                     });
                 } else if (err.invalidPassword) {
                     return res.render("login", {
                         userName: userName,
                         password: "",
-                        loginError: invalidPasswordErrorMessage,
-                        //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
-                        // loginError: errorMessage
+                        // Fix for A2-2 Broken Auth - Use identical error for both username and password error
+                        // Previously: loginError: invalidPasswordErrorMessage,
+                        loginError: errorMessage,
                         environmentalScripts
                     });
                 } else {
@@ -210,7 +210,9 @@ function SessionHandler(db) {
                 if (err) return next(err);
 
                 if (user) {
-                    errors.userNameError = "User name already in use. Please choose another";
+                    // Fix for account enumeration - use generic error that does not confirm account existence
+                    // Previously: errors.userNameError = "User name already in use. Please choose another";
+                    errors.userNameError = "Sign up was not successful. Please try again or contact support.";
                     return res.render("signup", {
                         ...errors,
                         environmentalScripts
