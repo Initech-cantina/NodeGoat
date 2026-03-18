@@ -1,0 +1,5 @@
+# Known historical credential in vendored node_modules (removed in 54baea0)
+# This was a third-party test fixture from the `request` npm package, not an Initech credential.
+# The node_modules directory was committed in a7b556d (2013) and removed in 54baea0 (2015).
+# Ref: Alert #381
+a7b556da2a25a626b908570706b5d9b41e31dc91:node_modules/forever/node_modules/winston/node_modules/request/tests/test-s3.js:aws-access-token
