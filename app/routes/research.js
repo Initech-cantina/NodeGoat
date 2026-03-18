@@ -4,6 +4,12 @@ const {
     environmentalScripts
 } = require("../../config/config");
 
+// Server-side allowlist of permitted upstream URLs for stock research
+const ALLOWED_BASE_URL = "https://finance.yahoo.com/quote/";
+
+// Only allow valid stock ticker symbols (letters, numbers, dots, hyphens, carets)
+const VALID_SYMBOL_REGEX = /^[A-Za-z0-9.\-^]{1,10}$/;
+
 function ResearchHandler(db) {
     "use strict";
 
@@ -12,8 +18,19 @@ function ResearchHandler(db) {
     this.displayResearch = (req, res) => {
 
         if (req.query.symbol) {
-            const url = req.query.url + req.query.symbol;
-            return needle.get(url, (error, newResponse, body) => {
+            const symbol = req.query.symbol;
+
+            // Validate symbol to prevent injection
+            if (!VALID_SYMBOL_REGEX.test(symbol)) {
+                res.writeHead(400, { "Content-Type": "text/html" });
+                res.write("<h1>Invalid stock symbol. Please use only letters, numbers, dots, and hyphens.</h1>");
+                return res.end();
+            }
+
+            // Use server-side allowlisted URL instead of user-controlled input
+            const url = ALLOWED_BASE_URL + encodeURIComponent(symbol);
+
+            return needle.get(url, { follow_max: 0 }, (error, newResponse, body) => {
                 if (!error && newResponse.statusCode === 200) {
                     res.writeHead(200, {
                         "Content-Type": "text/html"
