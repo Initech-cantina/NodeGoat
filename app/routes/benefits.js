@@ -32,6 +32,12 @@ function BenefitsHandler(db) {
             benefitStartDate
         } = req.body;
 
+        // Fix for A3 - XSS: Validate benefitStartDate is a strict date format (YYYY-MM-DD)
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!benefitStartDate || !dateRegex.test(benefitStartDate) || isNaN(Date.parse(benefitStartDate))) {
+            return next(new Error("Invalid benefit start date. Expected format: YYYY-MM-DD"));
+        }
+
         benefitsDAO.updateBenefits(userId, benefitStartDate, (error) => {
 
             if (error) return next(error);
