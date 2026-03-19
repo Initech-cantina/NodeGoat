@@ -26,6 +26,41 @@ const index = (app, db) => {
     //Middleware to check if user has admin rights
     const isAdmin = sessionHandler.isAdminUserMiddleware;
 
+    // Allowlist of domains permitted for the /learn redirect
+    const defined_defined_ALLOWED_REDIRECT_DOMAINS = [
+        "nodejs.org",
+        "owasp.org",
+        "npmjs.com",
+        "github.com"
+    ];
+
+    /**
+     * Validates a redirect URL to prevent open redirect attacks.
+     * Only allows relative paths or URLs matching the allowed domains allowlist.
+     */
+    const isValidRedirectUrl = (url) => {
+        if (!url) return false;
+
+        // Allow relative paths (must start with / and not //)
+        if (url.startsWith("/") && !url.startsWith("//")) {
+            return true;
+        }
+
+        try {
+            const parsed = new URL(url);
+            // Only allow http and https protocols
+            if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+                return false;
+            }
+            // Check if the hostname matches one of the allowed domains
+            return defined_defined_ALLOWED_REDIRECT_DOMAINS.some((domain) =>
+                parsed.hostname === domain || parsed.hostname.endsWith("." + domain)
+            );
+        } catch (e) {
+            return false;
+        }
+    };
+
     // The main page of the app
     app.get("/", sessionHandler.displayWelcomePage);
 
@@ -67,9 +102,13 @@ const index = (app, db) => {
     app.post("/memos", isLoggedIn, memosHandler.addMemos);
 
     // Handle redirect for learning resources link
+    // Fix for A10 - Unvalidated Redirects: validate URL against allowlist before redirecting
     app.get("/learn", isLoggedIn, (req, res) => {
-        // Insecure way to handle redirects by taking redirect url from query string
-        return res.redirect(req.query.url);
+        const url = req.query.url;
+        if (isValidRedirectUrl(url)) {
+            return res.redirect(url);
+        }
+        return res.redirect("/dashboard");
     });
 
     // Research Page
