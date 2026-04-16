@@ -55,6 +55,20 @@ function SessionHandler(db) {
             userName,
             password
         } = req.body;
+
+        // Reject non-string credentials to prevent NoSQL operator injection.
+        // Without this check, an attacker can send userName as a MongoDB operator
+        // object (e.g. {"$ne": null}) via a JSON request body, allowing them to
+        // control which user document is matched by the findOne query.
+        if (typeof userName !== "string" || typeof password !== "string") {
+            return res.render("login", {
+                userName: "",
+                password: "",
+                loginError: "Invalid username and/or password",
+                environmentalScripts
+            });
+        }
+
         userDAO.validateLogin(userName, password, (err, user) => {
             const errorMessage = "Invalid username and/or password";
             const invalidUserNameErrorMessage = "Invalid username";

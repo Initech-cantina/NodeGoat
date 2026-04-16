@@ -56,6 +56,13 @@ function UserDAO(db) {
 
     this.validateLogin = (userName, password, callback) => {
 
+        // Defense-in-depth: reject non-string userName to prevent NoSQL operator injection
+        if (typeof userName !== "string") {
+            const invalidInputError = new Error("Invalid input type for userName");
+            invalidInputError.noSuchUser = true;
+            return callback(invalidInputError, null);
+        }
+
         // Helper function to compare passwords
         const comparePassword = (fromDB, fromUser) => {
             return fromDB === fromUser;
