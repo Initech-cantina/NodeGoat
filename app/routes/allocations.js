@@ -16,6 +16,14 @@ function AllocationsHandler(db) {
         const {
             userId
         } = req.params;
+
+        // Validate userId is a numeric string to prevent reflected XSS via
+        // template injection. The DAO already calls parseInt() internally, so
+        // only numeric values are meaningful; anything else is rejected early.
+        if (!userId || !/^\d+$/.test(userId)) {
+            return res.status(400).send("Invalid userId");
+        }
+
         const {
             threshold
         } = req.query;
