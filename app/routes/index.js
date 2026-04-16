@@ -26,6 +26,44 @@ const index = (app, db) => {
     //Middleware to check if user has admin rights
     const isAdmin = sessionHandler.isAdminUserMiddleware;
 
+    // Allowlist of trusted domains for the /learn redirect (Fix for A10)
+    const ALLOWED_REDIRECT_DOMAINS = [
+        "khanacademy.org",
+        "owasp.org",
+        "nodejs.org",
+        "npmjs.com",
+        "github.com"
+    ];
+
+    /**
+     * Validates a redirect URL to prevent open redirect attacks (A10).
+     * Permits relative paths and absolute URLs matching the domain allowlist.
+     * @param {string} url - The URL to validate
+     * @returns {boolean} true if the URL is safe to redirect to
+     */
+    const isValidRedirectUrl = (url) => {
+        if (!url || typeof url !== "string") return false;
+
+        // Allow relative paths that start with "/" but block protocol-relative "//"
+        if (url.startsWith("/") && !url.startsWith("//")) {
+            return true;
+        }
+
+        try {
+            const parsed = new URL(url);
+            // Only allow http and https schemes
+            if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+                return false;
+            }
+            // Check hostname against the allowlist (exact match or subdomain)
+            return ALLOWED_REDIRECT_DOMAINS.some((domain) =>
+                parsed.hostname === domain || parsed.hostname.endsWith("." + domain)
+            );
+        } catch (e) {
+            return false;
+        }
+    };
+
     // The main page of the app
     app.get("/", sessionHandler.displayWelcomePage);
 
@@ -67,9 +105,13 @@ const index = (app, db) => {
     app.post("/memos", isLoggedIn, memosHandler.addMemos);
 
     // Handle redirect for learning resources link
+    // Fix for A10 - Unvalidated Redirects: validate URL against allowlist before redirecting
     app.get("/learn", isLoggedIn, (req, res) => {
-        // Insecure way to handle redirects by taking redirect url from query string
-        return res.redirect(req.query.url);
+        const url = req.query.url;
+        if (isValidRedirectUrl(url)) {
+            return res.redirect(url);
+        }
+        return res.redirect("/dashboard");
     });
 
     // Research Page
