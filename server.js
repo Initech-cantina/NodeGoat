@@ -11,6 +11,7 @@ const swig = require("swig");
 const MongoClient = require("mongodb").MongoClient; // Driver for connecting to MongoDB
 const http = require("http");
 const marked = require("marked");
+const sanitizeHtml = require("sanitize-html");
 //const nosniff = require('dont-sniff-mimetype');
 const app = express(); // Web framework to handle routing requests
 const routes = require("./app/routes");
@@ -123,10 +124,47 @@ MongoClient.connect(db, (err, db) => {
 
     // Initializing marked library
     // Fix for A9 - Insecure Dependencies
+    // Custom renderer to block javascript:/vbscript:/data: schemes even when
+    // obfuscated through malformed HTML entities (CVE in marked 0.3.5)
+    var renderer = new marked.Renderer();
+    renderer.link = function(href, title, text) {
+        // Decode HTML entities to reveal obfuscated schemes
+        var decoded = href
+            .replace(/&amp;/g, "&")
+            .replace(/&#(\d+)\w*;/g, function(m, n) {
+                return String.fromCharCode(parseInt(n, 10));
+            })
+            .replace(/&#x([0-9a-fA-F]+)\w*;/g, function(m, h) {
+                return String.fromCharCode(parseInt(h, 16));
+            });
+        var normalized = decoded.replace(/[\x00-\x1f\x7f\s]/g, "").toLowerCase();
+        if (/^(javascript|vbscript|data):/i.test(normalized)) {
+            return text;
+        }
+        var out = "<a href=\"" + href + "\"";
+        if (title) {
+            out += " title=\"" + title + "\"";
+        }
+        out += ">" + text + "</a>";
+        return out;
+    };
+
     marked.setOptions({
-        sanitize: true
+        sanitize: true,
+        renderer: renderer
     });
-    app.locals.marked = marked;
+
+    app.locals.marked = function(text) {
+        var rendered = marked(text);
+        return sanitizeHtml(rendered, {
+            allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
+            allowedAttributes: {
+                "a": ["href", "name", "target"],
+                "img": ["src", "alt"]
+            },
+            allowedSchemes: ["http", "https", "mailto"]
+        });
+    };
 
     // Application routes
     routes(app, db);
